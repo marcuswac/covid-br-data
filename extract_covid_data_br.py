@@ -49,7 +49,7 @@ def filter_estados(df):
 
 def export_csvs(excel_file, csv_prefix):
     df = pd.read_excel(excel_file)
-    csv_output = csv_prefix + "-all.csv"
+    csv_output = csv_prefix + "-complete.csv"
     df.to_csv(csv_output, index=False)
     print("CSV complete exported:", csv_output)
 
@@ -59,8 +59,9 @@ def export_csvs(excel_file, csv_prefix):
     print("CSV by state exported:", csv_output)
     
 def main(args):
-    download_dir = os.path.abspath(args[0]) if len(args) > 0 else os.getcwd()
-    csv_filename_prefix = args[1] if len(args) > 1 else 'data-covid19-br-ms'
+    download_rel_dir = args[0] if len(args) > 0 else "data"
+    download_dir = os.path.abspath(download_rel_dir)
+    csv_filename_prefix = args[1] if len(args) > 1 else 'covid-br-ms'
     csv_output_prefix = os.path.join(download_dir, csv_filename_prefix)
 
     downloaded_file = download_ms_data(download_dir)
