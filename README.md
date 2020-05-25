@@ -1,1 +1,1 @@
-# covid19br-data
+# covid-br-data
