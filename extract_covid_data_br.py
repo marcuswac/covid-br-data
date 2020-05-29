@@ -43,20 +43,38 @@ def download_ms_data(download_dir):
     driver.quit()
     return(downloaded_file)
 
-def filter_estados(df):
-    df_estados = df[df.estado.notnull() & df.codmun.isnull()]
-    return(df_estados)
+def filter_country(df):
+    df_country = df[df.estado.isnull() & df.codmun.isnull()]
+    return(df_country)
+
+def filter_states(df):
+    df_states = df[df.estado.notnull() & df.codmun.isnull()]
+    return(df_states)
+
+def filter_cities(df):
+    df_cities = df[df.municipio.notnull()]
+    return(df_cities)
 
 def export_csvs(excel_file, csv_prefix):
-    df = pd.read_excel(excel_file)
+    df_complete = pd.read_excel(excel_file)
     csv_output = csv_prefix + "-complete.csv"
-    df.to_csv(csv_output, index=False)
+    df_complete.to_csv(csv_output, index=False)
     print("CSV complete exported:", csv_output)
 
-    df_estados = filter_estados(df)
+    df = filter_country(df_complete)
+    csv_output = csv_prefix + "-country.csv"
+    df.to_csv(csv_output, index=False)
+    print("CSV for country exported:", csv_output)
+    
+    df = filter_states(df_complete)
     csv_output = csv_prefix + "-states.csv"
-    df_estados.to_csv(csv_output, index=False)
+    df.to_csv(csv_output, index=False)
     print("CSV by state exported:", csv_output)
+
+    df = filter_cities(df_complete)
+    csv_output = csv_prefix + "-cities.csv"
+    df.to_csv(csv_output, index=False)
+    print("CSV by city exported:", csv_output)
     
 def main(args):
     download_rel_dir = args[0] if len(args) > 0 else "data"
