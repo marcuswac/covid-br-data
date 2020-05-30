@@ -23,7 +23,7 @@ def download_ms_data(download_dir):
     driver = webdriver.Firefox(profile)
     driver.get("https://covid.saude.gov.br")
 
-    time.sleep(10)
+    time.sleep(5)
     button_xpath = "/html/body/app-root/ion-app/ion-router-outlet/app-home/ion-content/div[1]/div[2]/ion-button"
     WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, button_xpath)))
     element = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, button_xpath)))
@@ -32,8 +32,8 @@ def download_ms_data(download_dir):
     
     # Wait for file to be created
     while len(xlsx_files) == n_before:
-        print("Waiting +10 seconds to finish downloading...")
-        time.sleep(10)
+        print("Waiting +5 seconds to finish downloading...")
+        time.sleep(5)
         xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
 
     xlsx_files.sort(key=os.path.getmtime, reverse=True)
@@ -77,9 +77,9 @@ def export_csvs(excel_file, csv_prefix):
     print("CSV by city exported:", csv_output)
     
 def main(args):
-    download_rel_dir = args[0] if len(args) > 0 else "data"
+    download_rel_dir = args[0] if len(args) > 0 else ""
     download_dir = os.path.abspath(download_rel_dir)
-    csv_filename_prefix = args[1] if len(args) > 1 else 'covid-br-ms'
+    csv_filename_prefix = args[1] if len(args) > 1 else "covid-br-ms"
     csv_output_prefix = os.path.join(download_dir, csv_filename_prefix)
 
     downloaded_file = download_ms_data(download_dir)
