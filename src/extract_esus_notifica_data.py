@@ -8,6 +8,7 @@ def main(args):
 
     ufs = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
         "PB", "PE", "PI", "PR", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
+    chunk_size = 1024 * 1024 # 1MB
 
     for uf in ufs:
         csv_file = "dados-{}.csv".format(uf.lower())
@@ -18,7 +19,7 @@ def main(args):
         response = requests.get(url, stream=True)
 
         with gzip.open(output_file, 'wb') as f:
-            for block in response.iter_content(1024):
+            for block in response.iter_content(chunk_size):
                 f.write(block)
         
         print("File saved:", output_file)
