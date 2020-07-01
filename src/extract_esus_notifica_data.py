@@ -1,36 +1,27 @@
-from datetime import datetime
-from elasticsearch import Elasticsearch, helpers
-import csv
-import pandas as pd
-import asyncio
+import gzip
+import os
+import requests
+import sys
 
-async def write_results(res_df, uf):
-    csv_file = 'notificacoes_esusve_{}.csv.gz'.format(uf.lower())
-    res_df.to_csv(csv_file, index=False, quoting = csv.QUOTE_NONNUMERIC)
-    print('Data written to: {}'.format(csv_file))
+def main(args):
+    output_dir = args[0] if len(args) > 0 else "esus-notifica"
 
-ufs = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
-       "PB", "PE", "PI", "PR", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
+    ufs = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
+        "PB", "PE", "PI", "PR", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
 
-for uf in ufs:
-#for uf in ["complete"]:
-    es = Elasticsearch('https://elasticsearch-saps.saude.gov.br',
-                    http_auth=('user-public-notificacoes', 'Za4qNXdyQNSa9YaA'))
+    for uf in ufs:
+        csv_file = "dados-{}.csv".format(uf.lower())
+        csv_gz_file = csv_file + '.gz'
+        output_file = os.path.join(output_dir, csv_gz_file)
+        url = "https://s3-sa-east-1.amazonaws.com/ckan.saude.gov.br/" + csv_file
+        
+        response = requests.get(url, stream=True)
 
-    index = 'desc-notificacoes-esusve-' + uf.lower()
-    #index = 'desc-notificacoes-esusve-*'
+        with gzip.open(output_file, 'wb') as f:
+            for block in response.iter_content(1024):
+                f.write(block)
+        
+        print("File saved:", output_file)
 
-    res = es.search(index = index, scroll = '1m', size = 10000)
-    scroll_id = res['_scroll_id']
-
-    print('Data for {}. Total hits: {}'.format(uf, res['hits']['total']['value']))
-    res_hits = []
-
-    while len(res['hits']['hits']):
-        res_hits += [x['_source'] for x in res['hits']['hits']]
-        print("Hits read: %d" % len(res_hits))
-        scroll_id = res['_scroll_id']
-        res = es.scroll(scroll_id  = scroll_id, scroll = '1m')
-
-    res_hits = pd.DataFrame(res_hits)
-    asyncio.run(write_results(res_hits, uf))
+if __name__ == '__main__':
+    main(sys.argv[1:])
