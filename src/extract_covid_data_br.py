@@ -32,14 +32,16 @@ def download_ms_data(download_dir):
     
     # Wait for file to be created
     while len(xlsx_files) == n_before:
-        print("Waiting +5 seconds to finish downloading...")
-        time.sleep(5)
+        print("Waiting +10 seconds to finish downloading...")
+        time.sleep(10)
         xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
 
     xlsx_files.sort(key=os.path.getmtime, reverse=True)
     downloaded_file = xlsx_files[0]
     print("File downloaded:", downloaded_file)
-    
+   
+    time.sleep(10)
+
     driver.quit()
     return(downloaded_file)
 
