@@ -9,8 +9,8 @@ import time, os
 
 def download_ms_data(download_dir):
     print("Downloading file to", download_dir)
-    #xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
-    xlsx_files = glob.glob(os.path.join(download_dir, "HOJE_PAINEL_COVIDBR_*.xlsx"))
+    xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
+    #xlsx_files = glob.glob(os.path.join(download_dir, "HOJE_PAINEL_COVIDBR_*.xlsx"))
     n_before = len(xlsx_files)
 
     # To prevent download dialog
@@ -32,11 +32,14 @@ def download_ms_data(download_dir):
     element.click()
     
     # Wait for file to be created
-    while len(xlsx_files) == n_before:
+    sleep_time = 10 # seconds
+    timeout = 120 # seconds
+    attempts = 0
+    while len(xlsx_files) == n_before and attempts * sleep_time <= timeout:
         print("Waiting +10 seconds to finish downloading...")
         time.sleep(10)
-        #xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
-        xlsx_files = glob.glob(os.path.join(download_dir, "HOJE_PAINEL_COVIDBR_*.xlsx"))
+        xlsx_files = glob.glob(os.path.join(download_dir, "HIST_PAINEL_COVIDBR_*.xlsx"))
+        #xlsx_files = glob.glob(os.path.join(download_dir, "HOJE_PAINEL_COVIDBR_*.xlsx"))
 
     xlsx_files.sort(key=os.path.getmtime, reverse=True)
     downloaded_file = xlsx_files[0]
@@ -60,14 +63,8 @@ def filter_cities(df):
     return(df_cities)
 
 def export_csvs(excel_file, csv_prefix):
-    #df_complete = pd.read_excel(excel_file)
-    df_today = pd.read_excel(excel_file)
+    df_complete = pd.read_excel(excel_file)
     csv_file = csv_prefix + "-complete.csv"
-    df_complete = pd.read_csv(csv_file)
-    df_complete = df_complete.append(df_today)
-    unique_cols = ['regiao', 'estado', 'municipio', 'data']
-    df_complete.sort_values(unique_cols, inplace=True)
-    df_complete.drop_duplicates(subset=unique_cols, keep='last', inplace=True)
     df_complete.to_csv(csv_file, index=False)
     print("CSV complete exported:", csv_file)
 
