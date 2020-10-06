@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, and run updates
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python application
+name: Update MS data
 
 on:
   schedule:
@@ -26,12 +26,12 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run update
       run: |
-        python src/extract_covid_data_br.py
+        python src/extract_covid_data_br.py && date > last_update
     - name: Add & Commit
       uses: EndBug/add-and-commit@v5.0.0
       with:
         # Arguments for the git add command
-        add: covid-br-ms-*.csv
+        add: covid-br-ms-*.csv last_update
         # The name of the user that will be displayed as the author of the commit
         #author_name: # optional
         # The email of the user that will be displayed as the author of the commit
