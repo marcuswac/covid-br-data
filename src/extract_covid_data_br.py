@@ -6,6 +6,34 @@ import glob
 import pandas as pd
 import sys
 import time, os
+import json
+import requests
+from datetime import datetime, timedelta
+
+def download_ms_data2(download_dir):
+    print("Downloading file to", download_dir)
+    url = "https://xx9p7hp1p7.execute-api.us-east-1.amazonaws.com/prod/"
+    headers = {
+        "accept": "application/json, text/plain, /",
+        "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "x-parse-application-id": "unAFkcaNDeXajurGB7LChj8SgQYS2ptm",
+    }
+
+    request = requests.get(url + "PortalGeral", headers=headers)
+    content = request.content.decode("utf8")
+    data = json.loads(content)["results"][0]
+
+    zip_file = data["arquivo"]["url"]
+
+    df = pd.read_csv(zip_file, compression = 'zip', sep = ';')
+
+    today_date_str = "".join(str(datetime.now().date()).split("-"))
+    downloaded_file = os.path.join(download_dir, "covid-br-ms-complete.csv")
+    df.to_csv(downloaded_file, index=False)
+    return(downloaded_file)
 
 def download_ms_data(download_dir):
     print("Downloading file to", download_dir)
@@ -62,11 +90,12 @@ def filter_cities(df):
     df_cities = df[df.municipio.notnull()]
     return(df_cities)
 
-def export_csvs(excel_file, csv_prefix):
-    df_complete = pd.read_excel(excel_file)
-    csv_file = csv_prefix + "-complete.csv"
-    df_complete.to_csv(csv_file, index=False)
-    print("CSV complete exported:", csv_file)
+def export_csvs(csv_file, csv_prefix):
+    df_complete = pd.read_csv(csv_file)
+    #df_complete = pd.read_excel(excel_file)
+    #csv_file = csv_prefix + "-complete.csv"
+    #df_complete.to_csv(csv_file, index=False)
+    #print("CSV complete exported:", csv_file)
 
     df = filter_country(df_complete)
     csv_file = csv_prefix + "-country.csv"
@@ -89,7 +118,7 @@ def main(args):
     csv_filename_prefix = args[1] if len(args) > 1 else "covid-br-ms"
     csv_output_prefix = os.path.join(download_dir, csv_filename_prefix)
 
-    downloaded_file = download_ms_data(download_dir)
+    downloaded_file = download_ms_data2(download_dir)
     export_csvs(downloaded_file, csv_output_prefix)
 
 if __name__ == '__main__':
