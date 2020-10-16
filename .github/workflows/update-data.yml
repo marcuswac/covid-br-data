@@ -28,7 +28,7 @@ jobs:
     - name: Add & Commit
       uses: EndBug/add-and-commit@v5.0.0
       with:
-        add: covid-br-ms-*.csv last_update
+        add: covid-br-ms-*.csv.gz last_update
         message: updating data
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
