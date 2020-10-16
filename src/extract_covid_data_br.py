@@ -23,12 +23,11 @@ def download_ms_data(download_dir):
     data = json.loads(content)["results"][0]
 
     zip_file = data["arquivo"]["url"]
-
     df = pd.read_csv(zip_file, compression = 'zip', sep = ';')
 
     today_date_str = "".join(str(datetime.now().date()).split("-"))
-    downloaded_file = os.path.join(download_dir, "covid-br-ms-complete.csv")
-    df.to_csv(downloaded_file, index=False)
+    downloaded_file = os.path.join(download_dir, "covid-br-ms-complete.csv.gz")
+    df.to_csv(downloaded_file, index=False, compression = 'gzip')
     return(downloaded_file)
 
 def filter_country(df):
@@ -47,18 +46,18 @@ def export_csvs(csv_file, csv_prefix):
     df_complete = pd.read_csv(csv_file)
 
     df = filter_country(df_complete)
-    csv_file = csv_prefix + "-country.csv"
-    df.to_csv(csv_file, index=False)
+    csv_file = csv_prefix + "-country.csv.gz"
+    df.to_csv(csv_file, index=False, compression = 'gzip')
     print("CSV for country exported:", csv_file)
     
     df = filter_states(df_complete)
-    csv_file = csv_prefix + "-states.csv"
-    df.to_csv(csv_file, index=False)
+    csv_file = csv_prefix + "-states.csv.gz"
+    df.to_csv(csv_file, index=False, compression = 'gzip')
     print("CSV by state exported:", csv_file)
 
     df = filter_cities(df_complete)
-    csv_file = csv_prefix + "-cities.csv"
-    df.to_csv(csv_file, index=False)
+    csv_file = csv_prefix + "-cities.csv.gz"
+    df.to_csv(csv_file, index=False, compression = 'gzip')
     print("CSV by city exported:", csv_file)
     
 def main(args):
