@@ -22,8 +22,10 @@ def download_ms_data(download_dir):
     content = request.content.decode("utf8")
     data = json.loads(content)["results"][0]
 
-    zip_file = data["arquivo"]["url"]
-    df = pd.read_csv(zip_file, compression = 'zip', sep = ';')
+    #zip_file = data["arquivo"]["url"]
+    #df = pd.read_csv(zip_file, compression = 'zip', sep = ';')
+    csv_file = data["arquivo"]["url"]
+    df = pd.read_csv(csv_file, sep = ';')
 
     today_date_str = "".join(str(datetime.now().date()).split("-"))
     downloaded_file = os.path.join(download_dir, "covid-br-ms-complete.csv.gz")
