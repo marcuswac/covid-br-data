@@ -1,36 +1,44 @@
-from datetime import datetime
 from elasticsearch import Elasticsearch, helpers
 import csv
-import pandas as pd
-import asyncio
+from joblib import Parallel, delayed
+import gzip
 
-async def write_results(res_df, uf):
-    csv_file = 'notificacoes_esusve_{}.csv.gz'.format(uf.lower())
-    res_df.to_csv(csv_file, index=False, quoting = csv.QUOTE_NONNUMERIC)
-    print('Data written to: {}'.format(csv_file))
-
-ufs = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
-       "PB", "PE", "PI", "PR", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
-
-for uf in ufs:
-#for uf in ["complete"]:
+def extract_uf(uf):
     es = Elasticsearch('https://elasticsearch-saps.saude.gov.br',
                     http_auth=('user-public-notificacoes', 'Za4qNXdyQNSa9YaA'))
 
     index = 'desc-notificacoes-esusve-' + uf.lower()
-    #index = 'desc-notificacoes-esusve-*'
 
-    res = es.search(index = index, scroll = '1m', size = 10000)
-    scroll_id = res['_scroll_id']
+    fields = ['source_id',
+              #'dataSintomas', 'dataRegistro', 'dataAtualizacao',
+              'municipio', 'estado', 'municipioNotificacao', 'estadoNotificacao',
+              #'comorbidades', 'numeroCnes', 'confirmado',
+              'sexo', 'idade', 
+              #'febre', 'sinaisGravidade', 'sinaisRespiratorios',
+              'dataTeste', 'tipoTeste', 'classificacaoFinal',
+              #'sintomas', 'profissionalSaude','profissionalSeguranca', 'cbo', 
+              'dataNotificacao', 
+              #'outrosSintomas', 'estrangeiro', 'racaCor',
+              'evolucaoCaso', 'estadoTeste',
+              #'condicoes',
+              'dataEncerramento', 'dataInicioSintomas', 'resultadoTeste',
+              #'testeSorologico', 'dataTesteSorologico', 'tipoTesteSorologico', 'resultadoTesteSorologicoIgA',
+              #'resultadoTesteSorologicoIgG', 'resultadoTesteSorologicoIgM', 'resultadoTesteSorologicoTotais',
+              '_updated_at', '@timestamp',
+              #'estadoIBGE', 'estadoNotificacaoIBGE',
+              'municipioIBGE', 'municipioNotificacaoIBGE']
+    res_scan = helpers.scan(es, index = index, _source = fields, scroll = '30m', size = 10000)
+    csv_file_name = 'esus-notifica/api/notificacoes_esusve_{}.csv.gz'.format(uf.lower())
+    print("Starting to extract data for {}".format(uf))
+    
+    with gzip.open(csv_file_name, "wt") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows((document['_source'] for document in res_scan))
+    
+    print("Finished to extract data for {}".format(uf))
 
-    print('Data for {}. Total hits: {}'.format(uf, res['hits']['total']['value']))
-    res_hits = []
+ufs = ["SP", "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
+       "PB", "PE", "PI", "PR", "RJ", "RN", "RS", "RO", "RR", "SC", "SE", "TO"]
 
-    while len(res['hits']['hits']):
-        res_hits += [x['_source'] for x in res['hits']['hits']]
-        print("Hits read: %d" % len(res_hits))
-        scroll_id = res['_scroll_id']
-        res = es.scroll(scroll_id  = scroll_id, scroll = '1m')
-
-    res_hits = pd.DataFrame(res_hits)
-    asyncio.run(write_results(res_hits, uf))
+Parallel(n_jobs=4)(delayed(extract_uf)(uf) for uf in ufs)
