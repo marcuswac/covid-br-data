@@ -16,7 +16,7 @@ def extract_uf(uf):
     index = 'desc-notificacoes-esusve-' + uf.lower()
     
     res_scan = helpers.scan(es, index = index, scroll = '30m', size = 10000)
-    csv_file_name = 'esus-notifica/api/notificacoes_esusve_{}.csv.gz'.format(uf.lower())
+    csv_file_name = 'notificacoes_esusve_{}.csv.gz'.format(uf.lower())
     print("Starting to extract data for {}".format(uf))
     
     buffer_size = 1000000
